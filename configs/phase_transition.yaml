@@ -1,0 +1,64 @@
+# Extended Run Configuration
+# ==========================
+# For longer experiments with full metrics tracking.
+# This config is designed to detect phase transitions (PHASE 1).
+#
+# NOTE: Genesis is enabled here for optional phylogeny tracking.
+# This is acceptable because it's observation-only (not behavioral imposition).
+# All other layers remain disabled as per recommended build order.
+
+experiment:
+  name: phase_transition_test
+  seed: 42
+  description: >
+    Testing for phase transition emergence.
+    Based on Blaise Agüera y Arcas BFF experiment findings:
+    - Merge (symbiogenesis) is sufficient for life to emerge
+    - Phase transition detectable via entropy/compression ratio drop
+    - Life criteria: structure + replication + purpose
+  output_dir: "./chronicle/{name}_{timestamp}"
+
+chaos:
+  size: 512              # Larger soup for better statistics
+  tape_length: 64        # Longer tapes for more complex programs
+
+aether:
+  backend: python        # Use 'c' for faster execution
+  max_steps_per_interaction: 350
+  interactions_total: 500000  # More interactions to see phase transition
+  checkpoint_every: 25000
+
+apeiron:
+  rule: standard
+  selection: uniform
+
+layers:
+  genesis:
+    enabled: true
+    track_phylogeny: true
+    phylogeny_depth: 100
+
+# Track metrics for phase transition detection
+metrics:
+  log_interval: 5000     # Log every 5k interactions
+  metrics_enabled:
+    - entropy
+    - instruction_density
+    - avg_ops_per_interaction
+    - top_replicators
+    - phase_detector
+    - complexity
+    - compression_ratio   # Key metric: drops when phase transition occurs
+    - life_criteria       # Tracks: structure, replication, purpose
+  top_replicators_n: 20
+  complexity_sample_size: 100
+  life_criteria_thresholds:
+    instruction_density: 0.1    # Structure: 10% valid instructions
+    replicator_fraction: 0.05   # Replication: 5% replicators
+    compression_ratio: 0.8     # Purpose: compresses to <80%
+
+logging:
+  level: info
+  format: human
+  live_display: true
+  save_scroll_format: true
