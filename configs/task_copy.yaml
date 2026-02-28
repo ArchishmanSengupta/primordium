@@ -1,0 +1,22 @@
+# Task evolution test - Copy detection
+# See if programs evolve to copy/duplicate data
+
+experiment:
+  name: task_copy_test
+  seed: 42
+  output_dir: ./chronicle/task_copy
+
+chaos:
+  size: 256        # Larger soup for more diversity
+  tape_length: 48
+
+aether:
+  interactions_total: 50000000  # 50M interactions (~8 min)
+  checkpoint_every: 5000000
+  max_steps_per_interaction: 350
+
+metrics:
+  log_interval: 1000000
+
+logging:
+  level: info

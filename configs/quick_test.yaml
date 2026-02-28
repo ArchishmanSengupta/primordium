@@ -1,0 +1,15 @@
+# Quick test configuration
+experiment:
+  name: quick_test
+  seed: 42
+
+chaos:
+  size: 50
+  tape_length: 48
+
+aether:
+  interactions_total: 1000
+  checkpoint_every: 500
+
+logging:
+  level: info

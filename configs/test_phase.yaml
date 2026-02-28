@@ -1,0 +1,18 @@
+# Step 1: Abigenesis Configuration
+# Test configuration for phase transition
+
+experiment:
+  name: step1_test
+  seed: 42
+
+chaos:
+  size: 128
+  tape_length: 48
+
+aether:
+  interactions_total: 5000
+  checkpoint_every: 1000
+
+logging:
+  level: info
+  live_display: true

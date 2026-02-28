@@ -1,0 +1,68 @@
+# Step 1: Abigenesis Configuration
+# Basic test to verify phase transition occurs
+
+experiment:
+  name: step1_abiogenesis
+  description: Test abiogenesis phase transition
+  seed: 42
+  output_dir: ./chronicle/{name}_{timestamp}
+
+chaos:
+  size: 256
+  tape_length: 48
+  initialisation: random
+  initial_instruction_density: 0.03
+
+aether:
+  backend: python
+  device: cpu
+  max_steps_per_interaction: 350
+  interactions_total: 100000
+  checkpoint_every: 10000
+
+apeiron:
+  rule: standard
+  selection: uniform
+  spatial_radius: null
+
+layers:
+  genesis:
+    enabled: true
+    track_phylogeny: true
+    phylogeny_depth: 50
+  gaia:
+    enabled: false
+  hermes:
+    enabled: false
+  mnemosyne:
+    enabled: false
+  prometheus:
+    enabled: false
+  nous:
+    enabled: false
+
+demiurge:
+  enabled: false
+
+kratos:
+  fitness_function: replication
+  selection_pressure: 0.5
+  elitism: 0.1
+
+metrics:
+  log_interval: 10000
+  metrics_enabled:
+    - entropy
+    - instruction_density
+    - avg_ops_per_interaction
+    - top_replicators
+    - phase_detector
+    - complexity
+  top_replicators_n: 10
+  complexity_sample_size: 50
+
+logging:
+  level: info
+  format: human
+  live_display: true
+  save_scroll_format: true

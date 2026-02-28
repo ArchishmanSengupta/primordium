@@ -1,0 +1,25 @@
+# 5-minute stress test configuration
+# Optimized for M4 Pro (16GB RAM)
+
+experiment:
+  name: 5min_stress_test
+  seed: 42
+  output_dir: ./chronicle/5min_test
+
+chaos:
+  size: 128          # Small soup - minimal memory (~600KB)
+  tape_length: 48   # Standard tape length
+
+aether:
+  # At ~115K int/s, 5 min = ~34M interactions
+  # Log every 100K, checkpoint every 1M
+  interactions_total: 34000000   # ~34M interactions (5 min at 115K/s)
+  checkpoint_every: 1000000
+  max_steps_per_interaction: 350
+
+metrics:
+  log_interval: 100000   # Log every 100K interactions (less overhead)
+
+logging:
+  level: info
+  live_display: true
