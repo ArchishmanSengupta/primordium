@@ -1,11 +1,40 @@
 """Configuration schema for PRIMORDIUM.
 
-This module defines the Pydantic models that validate genesis.yaml.
+This module defines the Pydantic models that validate experiment configurations.
+
+DESIGN PHILOSOPHY
+=================
+
+PRIMORDIUM is based on Blaise Agüera y Arcas's BFF experiment (arXiv:2406.19108),
+which demonstrated that life and purpose emerge from pure computation through
+symbiogenesis (merger) - WITHOUT mutation and WITHOUT fitness functions.
+
+PHASE 1: Core Foundation
+------------------------
+The core soup dynamics use UNIFORM RANDOM SELECTION, not fitness-based selection.
+This is intentional - the BFF experiment proves emergence happens through
+thermodynamic selection (programs that copy get copied more) alone.
+
+KRATOS - Fitness Configuration
+-----------------------------
+Fitness functions do NOT belong in the core soup dynamics (Phases 1-6).
+They are only valid for DEMIURGE architecture evaluation, where you must
+measure whether a decoded neural network performs a task.
+
+Layer Build Order
+-----------------
+All layers are DISABLED by default. The correct order is:
+- Phase 1: AETHER, CHAOS, METRICS (core - demonstrate phase transition first)
+- Phase 2: GAIA (spatial ecology - based on Figure 8 of arXiv:2406.19108)
+- Phase 3-6: HERMES, MNEMOSYNE, PROMETHEUS, NOUS (defer based on what emerges)
+- Phase 7+: DEMIURGE (neural encoding - requires sufficient complexity)
+
+See FOUNDATION.md "Recommended Build Order" for full details.
 """
 
 from __future__ import annotations
 
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Dict
 from pydantic import BaseModel, Field
 import logging
 
@@ -74,7 +103,8 @@ class ApeironConfig(BaseModel):
 
 class GenesisLayerConfig(BaseModel):
     """GENESIS layer configuration."""
-    enabled: bool = Field(True, description="Genesis layer enabled")
+    # PHASE 1: Disabled by default. Enable after phase transition confirmed.
+    enabled: bool = Field(False, description="Genesis layer enabled")
     track_phylogeny: bool = Field(True, description="Track ancestry")
     phylogeny_depth: int = Field(50, description="Depth to track ancestry")
 
@@ -108,14 +138,31 @@ class MnemosyneLayerConfig(BaseModel):
 
 
 class PrometheusLayerConfig(BaseModel):
-    """PROMETHEUS layer configuration."""
+    """PROMETHEUS layer configuration.
+
+    WARNING: The prediction_bonus mechanism crosses from substrate provision
+    into behavioral nudging. If prediction is genuinely adaptive, programs
+    will evolve it without any bonus. This mechanism may need redesign.
+
+    See FOUNDATION.md "Recommended Build Order" - defer to Phase 5+.
+    """
     enabled: bool = Field(False, description="Prometheus layer enabled")
-    prediction_bonus: float = Field(1.0, description="Replication multiplier for accurate prediction")
+    prediction_bonus: float = Field(
+        1.0,
+        description="[DEPRECATED] Replication multiplier for accurate prediction - redesign required"
+    )
     prediction_window: int = Field(10, description="Past interactions for prediction")
 
 
 class NousLayerConfig(BaseModel):
-    """NOUS layer configuration."""
+    """NOUS layer configuration.
+
+    Theory of mind and meta-cognition per Agüera y Arcas (ALIFE 2025).
+    This is the correct long-term research target but requires ecologically
+    differentiated, communicating programs to be meaningful.
+
+    See FOUNDATION.md "Recommended Build Order" - defer to Phase 6+.
+    """
     enabled: bool = Field(False, description="Nous layer enabled")
     modeling_depth: int = Field(3, description="Max recursive modeling depth")
     depth_bonus_scale: float = Field(1.5, description="Bonus multiplier per depth level")
@@ -151,7 +198,14 @@ class DemiurgeConfig(BaseModel):
 
 
 class KratosConfig(BaseModel):
-    """KRATOS fitness and selection configuration."""
+    """KRATOS fitness and selection configuration.
+
+    IMPORTANT: Fitness functions do NOT belong in core soup dynamics.
+    The BFF experiment proves emergence happens without fitness pressure.
+    Thermodynamic selection (programs that copy get copied more) is sufficient.
+
+    Fitness signals ARE valid ONLY for DEMIURGE architecture evaluation.
+    """
     fitness_function: str = Field("replication", description="Fitness function name")
     selection_pressure: float = Field(
         0.5,
@@ -171,11 +225,21 @@ class MetricsConfig(BaseModel):
             "top_replicators",
             "phase_detector",
             "complexity",
+            "compression_ratio",  # Key for detecting phase transitions
+            "life_criteria",  # Operational definition of life
         ],
         description="List of enabled metrics"
     )
     top_replicators_n: int = Field(10, description="Top replicators to track")
     complexity_sample_size: int = Field(50, description="Scrolls to sample for complexity")
+    life_criteria_thresholds: Optional[Dict[str, float]] = Field(
+        default_factory=lambda: {
+            "instruction_density": 0.1,
+            "replicator_fraction": 0.05,
+            "compression_ratio": 0.8,
+        },
+        description="Thresholds for life criteria detection"
+    )
 
 
 class LoggingConfig(BaseModel):

@@ -1,0 +1,145 @@
+# PRIMORDIUM Experiment Configuration
+# ================================
+# This is the main configuration template for PRIMORDIUM experiments.
+# Copy this file and modify values to run your own experiments.
+
+# EXPERIMENT SETTINGS
+# -------------------
+experiment:
+  name: my_experiment          # Experiment name (used for output directory)
+  description: >               # Optional description
+    Describe your experiment here.
+  seed: 42                     # Random seed (null = random, set for reproducibility)
+  output_dir: "./chronicle/{name}_{timestamp}"  # Output directory pattern
+  # resume_from: "./chronicle/my_experiment_20240101/checkpoint.npy"  # Resume from checkpoint
+
+# CHAOS (SOUP) CONFIGURATION
+# --------------------------
+chaos:
+  size: 256                    # Number of scrolls (programs) in the soup
+  tape_length: 48              # Length of each scroll's tape (in bytes)
+  initialisation: random        # Initialization method: random, structured, seeded
+  initial_instruction_density: 0.03  # For structured init: fraction of valid BF instructions
+
+# AETHER (INTERPRETER) CONFIGURATION
+# ----------------------------------
+aether:
+  backend: python              # Backend: python, c, cuda (auto-fallbacks if unavailable)
+  device: cpu                 # Device for CUDA: cpu, cuda:0, etc.
+  max_steps_per_interaction: 350  # Max BF steps per interaction
+  interactions_total: 100000   # Total number of interactions to run
+  checkpoint_every: 10000      # Save checkpoint every N interactions
+
+# APEIRON (INTERACTION RULE) CONFIGURATION
+# -----------------------------------------
+apeiron:
+  rule: standard               # Interaction rule: standard
+  selection: uniform           # Selection method: uniform, spatial, fitness_biased
+  # spatial_radius: 5          # Radius for spatial selection (if enabled)
+
+# EVOLUTIONARY LAYERS
+# -------------------
+# PHASE 1: All layers disabled by default.
+# See PRIMORDIUM FOUNDATION.md "Recommended Build Order"
+# Build incrementally: Phase 1 (core) -> Phase 2 (GAIA) -> Phase 3-6 -> Phase 7+ (DEMIURGE)
+layers:
+  # GENESIS: Phylogeny tracking (optional - enable after phase transition confirmed)
+  genesis:
+    enabled: false
+    track_phylogeny: true
+    phylogeny_depth: 50
+
+  # GAIA: Spatial ecology
+  gaia:
+    enabled: false
+    spatial_topology: flat     # flat, grid, toroidal
+    # grid_width: 16           # Grid dimensions (if using grid topology)
+    # grid_height: 16
+    migration_rate: 0.01       # Long-range interaction probability
+    resource_model: fixed      # fixed, dynamic
+
+  # HERMES: Error correction & signals
+  hermes:
+    enabled: false
+    signal_bytes: 8            # Bytes reserved for signals
+    signal_position: head       # head, tail
+    signal_decay: 0.0          # Signal decay rate (0 = no decay)
+
+  # MNEMOSYNE: Long-term memory
+  mnemosyne:
+    enabled: false
+    register_size: 8            # Persistent memory bytes per scroll
+    memory_decay: 0.0           # Memory clearing probability
+
+  # PROMETHEUS: Tool use & external memory
+  # WARNING: prediction_bonus crosses from substrate provision into behavioral nudging.
+  # If prediction is genuinely adaptive, programs will evolve it without any bonus.
+  # See schema.py - this mechanism may need redesign.
+  prometheus:
+    enabled: false
+    prediction_bonus: 1.0      # [DEPRECATED] Redesign required - see FOUNDATION.md
+    prediction_window: 10      # Past interactions for prediction
+
+  # NOUS: Meta-learning & theory of mind
+  # Valid long-term research target per Agüera y Arcas (ALIFE 2025).
+  # Requires ecologically differentiated, communicating programs.
+  nous:
+    enabled: false
+    modeling_depth: 3           # Max recursive modeling depth
+    depth_bonus_scale: 1.5     # Bonus multiplier per depth level
+
+# DEMIURGE: Neural Encoding
+# --------------------------
+# Asks whether evolved BF programs, when decoded as neural architecture blueprints,
+# produce capable networks. Valid scientific question - requires Phase 7+ complexity.
+demiurge:
+  enabled: false
+  encoding_scheme: direct      # direct, indirect, developmental
+  max_layers: 10                # Max layers in encoded architectures
+  max_width: 256               # Max neurons per layer
+  activation_set:              # Available activation functions
+    - relu
+    - tanh
+    - gelu
+    - sigmoid
+  eval_dataset: mnist          # Dataset for evaluation
+  eval_samples: 1000           # Samples per evaluation
+  eval_timeout_seconds: 30.0    # Max evaluation time
+  sandbox: true                # Run evaluations in subprocess sandbox
+
+# KRATOS: Fitness & Selection
+# ---------------------------
+# IMPORTANT: Fitness functions do NOT belong in core soup dynamics.
+# The BFF experiment proves emergence happens without fitness pressure.
+# Thermodynamic selection is sufficient for Phases 1-6.
+# Fitness signals ARE valid ONLY for DEMIURGE architecture evaluation.
+kratos:
+  fitness_function: replication # Fitness function: replication, survival, etc.
+  selection_pressure: 0.5     # How strongly fit scrolls outcompete (0.0 to 1.0)
+  elitism: 0.1                # Fraction of top scrolls protected
+
+# METRICS & LOGGING
+# -----------------
+metrics:
+  log_interval: 10000          # Log metrics every N interactions
+  metrics_enabled:             # Which metrics to track
+    - entropy
+    - instruction_density
+    - avg_ops_per_interaction
+    - top_replicators
+    - phase_detector
+    - complexity
+    - compression_ratio       # NEW: Key for detecting phase transitions
+    - life_criteria           # NEW: Operational definition of life
+  top_replicators_n: 10        # Number of top replicators to track
+  complexity_sample_size: 50   # Scrolls to sample for complexity
+  life_criteria_thresholds:    # Thresholds for "life" detection
+    instruction_density: 0.1   # Min instruction density (structure)
+    replicator_fraction: 0.05 # Min fraction of replicators (replication)
+    compression_ratio: 0.8    # Max compression ratio (purpose)
+
+logging:
+  level: info                 # debug, info, warning, error
+  format: human               # human, json
+  live_display: true          # Show live terminal dashboard
+  save_scroll_format: true    # Save full soup state at checkpoints

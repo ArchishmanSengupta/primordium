@@ -50,6 +50,13 @@ def run(config_file: str, resume: bool):
     """
     from primordium.config import load_config
     from primordium.chaos import Soup
+    from primordium.metrics import (
+        soup_entropy,
+        instruction_density as calc_instruction_density,
+        soup_compression_ratio,
+        detect_life_criteria,
+        count_replicators,
+    )
 
     # Load configuration
     try:
@@ -132,9 +139,27 @@ def run(config_file: str, resume: bool):
         Soup.interact = c_interact
         logger.info("Using C backend for interactions")
 
+    # Get thresholds from config
+    thresholds = config.metrics.life_criteria_thresholds
+
     # Calculate initial metrics
     initial_density = soup.instruction_density()
-    logger.info(f"Initial instruction density: {initial_density:.4f}")
+    initial_entropy = soup_entropy(soup)
+    initial_comp_ratio = soup_compression_ratio(soup, sample_size=min(50, config.chaos.size))
+    initial_criteria = detect_life_criteria(
+        soup,
+        instruction_density_threshold=thresholds.get("instruction_density", 0.1),
+        replicator_fraction_threshold=thresholds.get("replicator_fraction", 0.05),
+        compression_ratio_threshold=thresholds.get("compression_ratio", 0.8),
+    )
+
+    logger.info("=" * 60)
+    logger.info("INITIAL STATE")
+    logger.info("=" * 60)
+    logger.info(f"Instruction density: {initial_density:.4f}")
+    logger.info(f"Entropy: {initial_entropy:.4f}")
+    logger.info(f"Compression ratio: {initial_comp_ratio:.4f}")
+    logger.info(f"Life criteria met: {initial_criteria['criteria_met']}")
 
     # Save initial checkpoint
     checkpoint_dir = os.path.join(output_dir, 'checkpoints')
@@ -147,6 +172,7 @@ def run(config_file: str, resume: bool):
     interactions_total = config.aether.interactions_total
     checkpoint_every = config.aether.checkpoint_every
     max_steps = config.aether.max_steps_per_interaction
+    log_interval = config.metrics.log_interval
 
     logger.info(f"Running {interactions_total} interactions...")
 
@@ -158,19 +184,37 @@ def run(config_file: str, resume: bool):
         ops_history.append(steps)
 
         # Log progress
-        if (i + 1) % config.metrics.log_interval == 0:
-            avg_ops = sum(ops_history[-config.metrics.log_interval:]) / config.metrics.log_interval
+        if (i + 1) % log_interval == 0:
+            avg_ops = sum(ops_history[-log_interval:]) / log_interval
             elapsed = time.time() - start_time
             rate = (i + 1) / elapsed
 
-            current_density = soup.instruction_density()
+            current_density = calc_instruction_density(soup)
+            current_entropy = soup_entropy(soup)
+            current_comp_ratio = soup_compression_ratio(soup, sample_size=min(50, config.chaos.size))
+            current_criteria = detect_life_criteria(
+                soup,
+                instruction_density_threshold=thresholds.get("instruction_density", 0.1),
+                replicator_fraction_threshold=thresholds.get("replicator_fraction", 0.05),
+                compression_ratio_threshold=thresholds.get("compression_ratio", 0.8),
+            )
 
-            logger.info(
+            # Build log message
+            log_msg = (
                 f"Interaction {i+1}/{interactions_total} | "
                 f"Avg ops: {avg_ops:.1f} | "
                 f"Density: {current_density:.4f} | "
+                f"Entropy: {current_entropy:.4f} | "
+                f"Comp ratio: {current_comp_ratio:.4f} | "
+                f"Life: {current_criteria['is_life']} | "
                 f"Rate: {rate:.1f} int/s"
             )
+
+            # Add criteria details
+            if current_criteria['is_life']:
+                log_msg += " *** LIFE EMERGED ***"
+
+            logger.info(log_msg)
 
         # Checkpoint
         if (i + 1) % checkpoint_every == 0:
@@ -182,7 +226,16 @@ def run(config_file: str, resume: bool):
     soup.save(final_path)
 
     # Final metrics
-    final_density = soup.instruction_density()
+    final_density = calc_instruction_density(soup)
+    final_entropy = soup_entropy(soup)
+    final_comp_ratio = soup_compression_ratio(soup, sample_size=min(50, config.chaos.size))
+    final_criteria = detect_life_criteria(
+        soup,
+        instruction_density_threshold=thresholds.get("instruction_density", 0.1),
+        replicator_fraction_threshold=thresholds.get("replicator_fraction", 0.05),
+        compression_ratio_threshold=thresholds.get("compression_ratio", 0.8),
+    )
+
     total_ops = sum(ops_history)
     avg_ops_final = total_ops / interactions_total
     elapsed = time.time() - start_time
@@ -193,8 +246,14 @@ def run(config_file: str, resume: bool):
     logger.info(f"Total interactions: {interactions_total}")
     logger.info(f"Total operations: {total_ops}")
     logger.info(f"Average ops/interaction: {avg_ops_final:.2f}")
-    logger.info(f"Initial density: {initial_density:.4f}")
-    logger.info(f"Final density: {final_density:.4f}")
+    logger.info("")
+    logger.info("FINAL STATE:")
+    logger.info(f"  Instruction density: {initial_density:.4f} -> {final_density:.4f}")
+    logger.info(f"  Entropy: {initial_entropy:.4f} -> {final_entropy:.4f}")
+    logger.info(f"  Compression ratio: {initial_comp_ratio:.4f} -> {final_comp_ratio:.4f}")
+    logger.info(f"  Life criteria: {final_criteria['criteria_met']}")
+    logger.info(f"  Life emerged: {final_criteria['is_life']}")
+    logger.info("")
     logger.info(f"Elapsed time: {elapsed:.1f}s")
     logger.info(f"Rate: {interactions_total/elapsed:.1f} int/s")
     logger.info(f"Output: {output_dir}")

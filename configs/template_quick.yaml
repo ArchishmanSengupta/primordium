@@ -1,0 +1,30 @@
+# Quick Test Configuration
+# ========================
+# Minimal configuration for quick testing.
+# For full configuration options, see template_full.yaml
+
+experiment:
+  name: quick_test
+  seed: 42
+  output_dir: "./chronicle/{name}_{timestamp}"
+
+chaos:
+  size: 128
+  tape_length: 48
+
+aether:
+  interactions_total: 1000
+  checkpoint_every: 500
+  max_steps_per_interaction: 350
+
+metrics:
+  log_interval: 100
+  metrics_enabled:
+    - entropy
+    - instruction_density
+    - compression_ratio
+    - life_criteria
+
+logging:
+  level: info
+  live_display: true

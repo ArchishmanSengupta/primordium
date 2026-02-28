@@ -1,4 +1,8 @@
-"""Default configuration values for PRIMORDIUM."""
+"""Default configuration values for PRIMORDIUM.
+
+See schema.py for design philosophy documentation.
+All layers are disabled by default - see FOUNDATION.md "Recommended Build Order".
+"""
 
 from typing import Dict, Any
 
@@ -30,8 +34,10 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "spatial_radius": None,
     },
     "layers": {
+        # PHASE 1: All layers disabled by default. Build incrementally.
+        # See FOUNDATION.md "Recommended Build Order" for the correct sequence.
         "genesis": {
-            "enabled": True,
+            "enabled": False,  # Enable after phase transition confirmed
             "track_phylogeny": True,
             "phylogeny_depth": 50,
         },
@@ -76,6 +82,10 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "eval_timeout_seconds": 30.0,
         "sandbox": True,
     },
+    # KRATOS: Fitness functions do NOT belong in core soup dynamics.
+    # The BFF experiment proves emergence happens without fitness pressure.
+    # Thermodynamic selection (programs that copy get copied more) is sufficient.
+    # Fitness signals ARE valid ONLY for DEMIURGE architecture evaluation.
     "kratos": {
         "fitness_function": "replication",
         "selection_pressure": 0.5,
@@ -90,9 +100,16 @@ DEFAULT_CONFIG: Dict[str, Any] = {
             "top_replicators",
             "phase_detector",
             "complexity",
+            "compression_ratio",
+            "life_criteria",
         ],
         "top_replicators_n": 10,
         "complexity_sample_size": 50,
+        "life_criteria_thresholds": {
+            "instruction_density": 0.1,
+            "replicator_fraction": 0.05,
+            "compression_ratio": 0.8,
+        },
     },
     "logging": {
         "level": "info",

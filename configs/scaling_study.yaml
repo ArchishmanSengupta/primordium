@@ -1,0 +1,32 @@
+# Scaling Study Configuration
+# ===========================
+# Test how system behavior changes with soup size.
+# Run multiple times with different chaos.size values.
+
+experiment:
+  name: scaling_study_small
+  seed: 42
+  description: >
+    Scaling study: small soup configuration.
+    Compare with medium (size=256) and large (size=1024).
+  output_dir: "./chronicle/{name}_{timestamp}"
+
+chaos:
+  size: 64           # Small soup
+  tape_length: 48
+
+aether:
+  interactions_total: 50000
+  checkpoint_every: 10000
+
+metrics:
+  log_interval: 5000
+  metrics_enabled:
+    - entropy
+    - instruction_density
+    - compression_ratio
+    - life_criteria
+
+logging:
+  level: info
+  live_display: true
