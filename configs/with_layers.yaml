@@ -1,0 +1,81 @@
+# Full Layers Configuration
+# ========================
+# Enable evolutionary layers to test their effect.
+#
+# WARNING: This config enables multiple layers simultaneously.
+# This is NOT the recommended build order.
+# See FOUNDATION.md "Recommended Build Order":
+#   Phase 1: Core foundation only (AETHER, CHAOS, METRICS)
+#   Phase 2: Add GAIA after phase transition confirmed
+#   Phase 3-6: Add layers based on what emerged
+#   Phase 7+: Add DEMIURGE after sufficient complexity
+#
+# This config is for testing AFTER Phase 1 is solid.
+
+experiment:
+  name: with_layers
+  seed: 42
+  description: >
+    Testing with evolutionary layers enabled.
+    GAIA adds spatial ecology, MNEMOSYNE adds memory.
+  output_dir: "./chronicle/{name}_{timestamp}"
+
+chaos:
+  size: 256
+  tape_length: 48
+
+aether:
+  backend: python
+  max_steps_per_interaction: 350
+  interactions_total: 100000
+  checkpoint_every: 10000
+
+# Enable evolutionary layers
+layers:
+  # GENESIS: Track ancestry
+  genesis:
+    enabled: true
+    track_phylogeny: true
+    phylogeny_depth: 50
+
+  # GAIA: Spatial ecology with grid topology
+  gaia:
+    enabled: true
+    spatial_topology: grid     # grid, toroidal
+    grid_width: 16
+    grid_height: 16
+    migration_rate: 0.01        # Small chance of long-range interaction
+    resource_model: fixed
+
+  # MNEMOSYNE: Long-term pattern memory
+  mnemosyne:
+    enabled: true
+    register_size: 8           # Extra memory bytes per scroll
+    memory_decay: 0.01          # Small chance of forgetting
+
+  # HERMES: Error correction (optional)
+  hermes:
+    enabled: false
+    signal_bytes: 8
+    signal_position: head
+    signal_decay: 0.0
+
+  # PROMETHEUS: Tool use (optional)
+  prometheus:
+    enabled: false
+
+  # NOUS: Meta-learning (optional)
+  nous:
+    enabled: false
+
+metrics:
+  log_interval: 5000
+  metrics_enabled:
+    - entropy
+    - instruction_density
+    - compression_ratio
+    - life_criteria
+
+logging:
+  level: info
+  live_display: true
