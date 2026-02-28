@@ -1,5 +1,8 @@
 # Step 1: Abigenesis Configuration
-# Basic test to verify phase transition occurs
+# Basic test to verify phase transition occurs (PHASE 1: Core Foundation)
+#
+# NOTE: Genesis is enabled for optional phylogeny tracking.
+# This is acceptable because it's observation-only, not behavioral imposition.
 
 experiment:
   name: step1_abiogenesis
