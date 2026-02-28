@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "primordium"
+version = "0.1.0"
+description = "Recursive self-improving AI through symbiogenetic computation"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "PRIMORDIUM Team"}
+]
+dependencies = [
+    "numpy>=1.20.0",
+    "torch>=2.0.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "networkx>=3.0",
+    "matplotlib>=3.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
+[project.scripts]
+primordium = "primordium.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["primordium*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
