@@ -608,6 +608,101 @@ For scientific reproducibility:
 
 ---
 
+## Research Enhancements
+
+This section documents the research enhancements built on top of PRIMORDIUM based on recent papers from paradigms-of-intelligence.
+
+### 1. DiffLogic DEMIURGE
+
+**Paper**: "Differentiable Logic Cellular Automata" (Google Research)
+
+**File**: `primordium/layers/demiurge/difflogic.py`
+
+Implements differentiable logic gates for encoding BrainFuck programs as neural network weights. This enables gradient-based optimization of BF programs.
+
+**Key Features**:
+- 16 differentiable logic operations (AND, OR, XOR, NAND, etc.)
+- MPS acceleration on Apple Silicon
+- Fault-tolerant: small perturbations don't break functionality
+
+**Usage**:
+```python
+from primordium.layers.demiurge.difflogic import DiffLogicDemiurgeLayer
+
+config = {
+    'enabled': True,
+    'tape_length': 48,
+    'hidden_size': 64,
+    'device': 'mps'
+}
+layer = DiffLogicDemiurgeLayer(config)
+```
+
+---
+
+### 2. Mesa-Optimization Detection (NOUS)
+
+**Paper**: "Uncovering mesa-optimization algorithms in Transformers" (arXiv:2410.18636)
+
+**File**: `primordium/layers/nous/mesa.py`
+
+Detects if emergent programs develop internal optimization - a key indicator of self-improving AI.
+
+**Detection Mechanisms**:
+- **Learning Signal**: Tracks fitness improvements over time via linear regression
+- **Goal Representation**: Detects reserved tape cells encoding target states
+- **Planning**: Identifies nested loops indicating lookahead behavior
+
+**Usage**:
+```python
+from primordium.layers.nous.mesa import MesaNousLayer
+
+config = {
+    'enabled': True,
+    'mesa_detection_enabled': True
+}
+layer = MesaNousLayer(config)
+```
+
+---
+
+### 3. State Soup MNEMOSYNE
+
+**Paper**: "State Soup: In-Context Skill Learning" (arXiv:2410.13989)
+
+**File**: `primordium/layers/mnemosyne/statesoup.py`
+
+Implements linear state interpolation for in-context learning without parameter updates.
+
+**Key Features**:
+- Treats scroll states as "task vectors" that can be mixed
+- Cosine-similarity retrieval of similar states
+- Enables skill mixing: combine behaviors from different epochs
+
+**Usage**:
+```python
+from primordium.layers.mnemosyne.statesoup import StateSoupMnemosyneLayer
+
+config = {
+    'enabled': True,
+    'state_dim': 32,
+    'store_frequency': 100
+}
+layer = StateSoupMnemosyneLayer(config)
+```
+
+---
+
+### 4. Replication Tracking
+
+**File**: `primordium/chaos/soup.py`
+
+Added replication detection to track when programs successfully copy themselves. This is critical for measuring emergence.
+
+**Detection**: Output tape contains original input pattern
+
+---
+
 ## Research Questions
 
 1. **Can symbiogenesis produce more complex organisms than mutation alone?**

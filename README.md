@@ -15,6 +15,17 @@ PRIMORDIUM is the first open-source framework for recursive self-improving AI th
 - **Fully Configurable**: Every parameter configurable via YAML
 - **Scientifically Rigorous**: Operational definition of "life" with measurable criteria
 
+## Research Enhancements
+
+Built on papers from paradigms-of-intelligence:
+
+- **DiffLogic DEMIURGE**: Differentiable logic gates for gradient-based program optimization
+- **Mesa-Optimization Detection**: Detects emergent internal optimization in programs
+- **State Soup**: In-context learning through linear state interpolation
+- **Replication Tracking**: Measures self-replication emergence
+
+See `primordium/FOUNDATION.md` for detailed documentation.
+
 ## Quick Start
 
 ```bash
