@@ -88,7 +88,6 @@ class Soup:
         scroll_i = self.scrolls[i]
         scroll_j = self.scrolls[j]
 
-        # Run the interpreter
         new_i, new_j, steps = run_bf(
             scroll_i.tape,
             scroll_j.tape,
@@ -96,7 +95,16 @@ class Soup:
             tape_length=self.tape_length,
         )
 
-        # Write back to scrolls
+        orig_i = scroll_i.tape.tobytes()
+        orig_j = scroll_j.tape.tobytes()
+        new_i_bytes = new_i.tobytes()
+        new_j_bytes = new_j.tobytes()
+
+        if orig_i in new_j_bytes or orig_j in new_i_bytes:
+            scroll_i.increment_copy_count()
+        if orig_j in new_i_bytes or orig_i in new_j_bytes:
+            scroll_j.increment_copy_count()
+
         self.scrolls[i].tape = new_i
         self.scrolls[j].tape = new_j
 
