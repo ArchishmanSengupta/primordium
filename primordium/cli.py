@@ -146,6 +146,7 @@ def run(config_file: str, resume: bool):
         size=config.chaos.size,
         tape_length=config.chaos.tape_length,
         seed=seed,
+        mutation_rate=config.apeiron.mutation_rate,
     )
 
     # Patch to use C backend if available

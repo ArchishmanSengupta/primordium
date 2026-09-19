@@ -31,6 +31,7 @@ class Soup:
         size: int = 256,
         tape_length: int = 48,
         seed: Optional[int] = None,
+        mutation_rate: float = 0.0,
     ):
         """Initialize the soup.
 
@@ -38,9 +39,11 @@ class Soup:
             size: Number of scrolls in the soup
             tape_length: Length of each scroll's tape
             seed: Random seed for reproducibility
+            mutation_rate: Per-byte probability of random background mutation
         """
         self.size = size
         self.tape_length = tape_length
+        self.mutation_rate = mutation_rate
 
         # Initialize random state
         if seed is not None:
@@ -105,10 +108,33 @@ class Soup:
         if orig_j in new_i_bytes:
             scroll_j.increment_copy_count()
 
+        if self.mutation_rate > 0.0:
+            new_i = self._mutate_tape(new_i)
+            new_j = self._mutate_tape(new_j)
+
         self.scrolls[i].tape = new_i
         self.scrolls[j].tape = new_j
 
         return steps
+
+    def _mutate_tape(self, tape: np.ndarray) -> np.ndarray:
+        """Apply random background mutation to a tape.
+
+        Each byte is replaced with a uniformly random byte with
+        probability ``mutation_rate`` (arXiv:2406.19108 background
+        mutations; arXiv:2607.01483 studies this operator directly).
+
+        Args:
+            tape: The tape to mutate (modified in place)
+
+        Returns:
+            The mutated tape
+        """
+        mask = self.rng.random_sample(len(tape)) < self.mutation_rate
+        n = int(mask.sum())
+        if n:
+            tape[mask] = self.rng.randint(0, 256, size=n).astype(np.uint8)
+        return tape
 
     def instruction_density(self) -> float:
         """Calculate the fraction of valid instructions in the soup.
