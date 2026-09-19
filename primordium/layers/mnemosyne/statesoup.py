@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Dict, Any, List
 from collections import deque
+from types import SimpleNamespace
 
 
 def extract_state_features(scroll) -> np.ndarray:
@@ -132,8 +133,9 @@ class StateSoupMnemosyneLayer:
         if not self.retrieve_enabled or not self.task_states:
             return []
 
-        query_state = np.random.randn(self.state_dim)
-        query_state[:8] = extract_state_features(type('Scroll', (), {'tape': tape, 'execution_steps': 0, 'branch_count': 0})())
+        query_state = extract_state_features(
+            SimpleNamespace(tape=tape, execution_steps=0, branch_count=0)
+        )
 
         mixed_state = self.retrieve_and_mix(query_state, top_k)
 

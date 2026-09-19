@@ -27,12 +27,18 @@ class SpatialGrid:
 
     def _initialize_positions(self):
         """Initialize random positions for all scrolls."""
+        capacity = self.grid_size * self.grid_size
+        if self.size > capacity:
+            raise ValueError(
+                f"SpatialGrid cannot place {self.size} scrolls on a "
+                f"{self.grid_size}x{self.grid_size} grid (capacity {capacity})"
+            )
         positions = [(x, y) for x in range(self.grid_size)
                            for y in range(self.grid_size)]
         np.random.shuffle(positions)
 
         for i in range(self.size):
-            x, y = positions[i % len(positions)]
+            x, y = positions[i]
             self.grid[x][y] = i
             self.scroll_positions[i] = (x, y)
 
@@ -56,11 +62,15 @@ class SpatialGrid:
         return neighbors
 
     def move_scroll(self, scroll_idx: int, new_x: int, new_y: int):
-        """Move a scroll to a new position."""
+        """Move a scroll to a new position if the cell is free."""
+        if not (0 <= new_x < self.grid_size and 0 <= new_y < self.grid_size):
+            return
+        occupant = self.grid[new_x][new_y]
+        if occupant is not None and occupant != scroll_idx:
+            return
         if scroll_idx in self.scroll_positions:
             old_x, old_y = self.scroll_positions[scroll_idx]
             self.grid[old_x][old_y] = None
-
         self.grid[new_x][new_y] = scroll_idx
         self.scroll_positions[scroll_idx] = (new_x, new_y)
 
@@ -87,7 +97,7 @@ class CarryingCapacity:
         # Lower fitness -> decrease capacity
         fitness_factor = 1.0 + self.growth_rate * (avg_fitness - 0.5)
 
-        target_capacity = int(self.max_capacity * fitness_factor)
+        target_capacity = int(min(population_size, self.max_capacity) * fitness_factor)
         target_capacity = max(100, min(self.max_capacity, target_capacity))
 
         # Smooth transition
@@ -143,10 +153,6 @@ class GaiaLayer:
         """After interaction, handle population dynamics."""
         if not self.enabled:
             return
-
-        # Track successful interactions for population dynamics
-        soup.scrolls[i]
-        soup.scrolls[j]
 
         # Record that these scrolls interacted
         if not hasattr(soup, '_gaia_interactions'):
