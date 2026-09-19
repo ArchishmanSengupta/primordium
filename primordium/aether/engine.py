@@ -1,7 +1,6 @@
 """C backend compiler and wrapper for AETHER."""
 
 import os
-import sys
 import ctypes
 import numpy as np
 from pathlib import Path
@@ -21,7 +20,6 @@ def compile_engine():
     if not lib_path.exists():
         # Compile the C code
         c_path = aether_dir / "engine.c"
-        output = aether_dir / "engine.o"
 
         if not c_path.exists():
             raise FileNotFoundError(f"C source not found: {c_path}")

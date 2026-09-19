@@ -6,14 +6,14 @@ of programs (scrolls) and their interactions.
 
 from __future__ import annotations
 
-import numpy as np
-from typing import Optional, Iterator, Tuple
 import logging
+from typing import Iterator, Optional, Tuple
+
+import numpy as np
+
+from primordium.chaos.scroll import Scroll
 
 logger = logging.getLogger(__name__)
-
-# Import Scroll from scroll module
-from primordium.chaos.scroll import Scroll
 
 
 class Soup:

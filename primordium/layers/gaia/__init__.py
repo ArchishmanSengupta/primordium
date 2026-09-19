@@ -6,9 +6,9 @@ Manages carrying capacity, population dynamics, and environmental pressures.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
 import numpy as np
-from collections import deque
 
 
 class SpatialGrid:
@@ -145,8 +145,8 @@ class GaiaLayer:
             return
 
         # Track successful interactions for population dynamics
-        scroll_i = soup.scrolls[i]
-        scroll_j = soup.scrolls[j]
+        soup.scrolls[i]
+        soup.scrolls[j]
 
         # Record that these scrolls interacted
         if not hasattr(soup, '_gaia_interactions'):

@@ -33,7 +33,7 @@ class MesaOptimizationDetector:
         y = np.array(fitnesses)
         try:
             slope, _ = np.polyfit(x, y, 1)
-        except:
+        except Exception:
             return False
 
         residuals = y - (slope * x + y[0])
@@ -67,7 +67,6 @@ class MesaOptimizationDetector:
         if abs(loop_starts - loop_ends) > 2:
             return False
 
-        nested_loops = 0
         depth = 0
         max_depth = 0
         for byte in tape:

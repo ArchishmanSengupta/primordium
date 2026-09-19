@@ -6,7 +6,7 @@ Named after the Greek goddess of memory - stores patterns across generations.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import numpy as np
 from collections import deque
 

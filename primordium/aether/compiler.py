@@ -1,7 +1,5 @@
 """Compiler for C/CUDA backends."""
 
-import os
-import sys
 import subprocess
 import logging
 from pathlib import Path
