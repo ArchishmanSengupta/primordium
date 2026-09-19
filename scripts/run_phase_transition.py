@@ -16,8 +16,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Add project to path
-sys.path.insert(0, str(Path(__file__).parent))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+os.chdir(PROJECT_ROOT)
 
 from primordium.chaos import Soup
 from primordium.aether import engine
@@ -365,7 +366,7 @@ def run_phase_transition_experiment():
     print(f"📊 Initial density: {initial_density:.4f}")
 
     # Save initial state
-    initial_path = checkpoint_dir / "soup_0.npy"
+    initial_path = checkpoint_dir / "soup_0.npz"
     soup.save(str(initial_path))
 
     # Calculate total interactions
@@ -392,7 +393,7 @@ def run_phase_transition_experiment():
 
                 # Check for checkpoint
                 if interaction % CHECKPOINT_INTERVAL == 0:
-                    checkpoint_path = checkpoint_dir / f"soup_{interaction}.npy"
+                    checkpoint_path = checkpoint_dir / f"soup_{interaction}.npz"
                     soup.save(str(checkpoint_path))
 
                 # Log metrics
@@ -450,7 +451,7 @@ def run_phase_transition_experiment():
 
     # Final save
     print("\n💾 Saving final state...")
-    final_path = checkpoint_dir / "soup_final.npy"
+    final_path = checkpoint_dir / "soup_final.npz"
     soup.save(str(final_path))
 
     # Generate visualization

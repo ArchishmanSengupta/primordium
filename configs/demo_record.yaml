@@ -1,0 +1,31 @@
+experiment:
+  name: demo_record
+  seed: 42
+  description: Medium run for screen recording (~40s with C backend). Shows entropy/compression drift; life may not appear yet.
+  output_dir: "./chronicle/{name}_{timestamp}"
+
+chaos:
+  size: 512
+  tape_length: 64
+
+aether:
+  backend: c
+  max_steps_per_interaction: 350
+  interactions_total: 5000000
+  checkpoint_every: 1000000
+
+metrics:
+  log_interval: 100000
+  metrics_enabled:
+    - entropy
+    - instruction_density
+    - compression_ratio
+    - life_criteria
+  life_criteria_thresholds:
+    instruction_density: 0.1
+    replicator_fraction: 0.05
+    compression_ratio: 0.8
+
+logging:
+  level: info
+  live_display: true

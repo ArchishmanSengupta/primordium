@@ -1,6 +1,10 @@
 import numpy as np
 import pytest
-import torch
+
+try:
+    import torch
+except ImportError:
+    pytest.skip("PyTorch not available", allow_module_level=True)
 
 from primordium.layers.demiurge.difflogic import DiffLogicBFEncoder, DiffLogicDemiurgeLayer
 

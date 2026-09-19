@@ -1,213 +1,210 @@
 # PRIMORDIUM
 
-**Recursive self-improving AI through symbiogenetic computation**
+[![CI](https://github.com/ArchishmanSengupta/primordium/actions/workflows/ci.yml/badge.svg)](https://github.com/ArchishmanSengupta/primordium/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![arXiv](https://img.shields.io/badge/arXiv-2406.19108-b31b1b.svg)](https://arxiv.org/abs/2406.19108)
 
-> *"After a few million interactions something apparently magical happens... suddenly the entropy of the soup drops dramatically... programs emerge... they're reproducing."*
-> — Blaise Agüera y Arcas, Google DeepMind
+**Open-source symbiogenetic computation framework** — reproduce and extend the
+Brainfuck "primordial soup" experiment from
+[*Computational Life: How Well-formed, Self-replicating Programs Emerge from Simple Interaction*](https://arxiv.org/abs/2406.19108)
+(Agüera y Arcas et al., 2024).
 
-PRIMORDIUM is the first open-source framework for recursive self-improving AI through embodied symbiogenetic computation. Based on the BFF experiment by [Blaise Agüera y Arcas](https://youtu.be/M2iX6HQOoLg), PRIMORDIUM demonstrates that life and purpose can emerge from pure computation through symbiogenesis - without any mutation.
+![PRIMORDIUM demo](demo/primordium-demo.gif)
 
-## Key Features
+A soup of random byte-tapes executes, merges and copies itself with **no
+mutation and no fitness function**. Selection is thermodynamic: programs
+that copy get copied more. After enough interactions the soup is meant to
+gel — entropy drops, replicators take over, and the run prints
+`*** LIFE EMERGED ***`.
 
-- **Symbiogenesis > Mutation**: Programs evolve through merger, not random mutation
-- **Phase Transitions**: Detects emergence of life through entropy/compression metrics
-- **Neural Encoding**: DEMIURGE layer transforms programs to neural networks
-- **Fully Configurable**: Every parameter configurable via YAML
-- **Scientifically Rigorous**: Operational definition of "life" with measurable criteria
+Read the [technical report](docs/REPORT.md) for the science, architecture,
+results and current research landscape.
 
-## Research Enhancements
+## How it works
 
-Built on papers from paradigms-of-intelligence:
+Two scrolls are selected at random, concatenated into one tape, executed as
+Brainfuck, and split back in half:
 
-- **DiffLogic DEMIURGE**: Differentiable logic gates for gradient-based program optimization
-- **Mesa-Optimization Detection**: Detects emergent internal optimization in programs
-- **State Soup**: In-context learning through linear state interpolation
-- **Replication Tracking**: Measures self-replication emergence
-
-See `primordium/FOUNDATION.md` for detailed documentation.
-
-## Quick Start
-
-```bash
-# Install
-pip install -e .
-
-# Validate a config
-primordium validate configs/template_quick.yaml
-
-# Run a quick test (1000 interactions, ~1 minute)
-primordium run configs/template_quick.yaml
-
-# Run extended phase transition test (500K interactions)
-primordium run configs/phase_transition.yaml
+```
+   scroll i                 scroll j
+   ┌────────┐               ┌────────┐
+   │ 48 B   │    concat     │ 48 B   │
+   └───┬────┘ ────────────► └───┬────┘
+       └───────────┬───────────┘
+             ┌─────▼──────┐
+             │  96 B tape │   run BF interpreter
+             │  ip=0 dp=0 │   (≤ max_steps)
+             └─────┬──────┘
+       ┌───────────┴───────────┐
+  ┌────▼─────┐            ┌────▼─────┐
+  │ scroll i'│            │ scroll j'│   split at midpoint,
+  └──────────┘            └──────────┘   write back to soup
 ```
 
-## What is PRIMORDIUM?
+The instruction set is a unified-tape Brainfuck variant — code and data share
+the same memory, so programs modify themselves as they run:
 
-PRIMORDIUM is based on a profound scientific discovery: **life can emerge from pure computation through symbiogenesis** (merger) without any mutation.
-
-### The Core Idea
-
-1. Start with random BrainFuck programs (the "primordial soup")
-2. Randomly pair and merge programs (symbiogenesis)
-3. Run the combined program
-4. Split back into two programs
-5. Repeat millions of times
-
-**Something magical happens**: Programs that can copy themselves emerge spontaneously.
-
-## Configuration
-
-PRIMORDIUM is fully configurable via YAML. See templates in `configs/`:
-
-| Config | Purpose |
-|--------|---------|
-| `template_full.yaml` | All configuration options |
-| `template_quick.yaml` | Quick test (~1 minute) |
-| `phase_transition.yaml` | Extended run for emergence |
-| `scaling_study.yaml` | Test different soup sizes |
-| `with_layers.yaml` | Enable evolutionary layers |
-
-### Basic Configuration
-
-```yaml
-experiment:
-  name: my_experiment
-  seed: 42
-
-chaos:
-  size: 256
-  tape_length: 48
-
-aether:
-  interactions_total: 100000
-  backend: c
-
-metrics:
-  log_interval: 5000
-  life_criteria_thresholds:
-    instruction_density: 0.1
-    replicator_fraction: 0.05
-    compression_ratio: 0.8
-```
-
-## Metrics & Life Detection
-
-PRIMORDIUM tracks key metrics for detecting phase transitions:
-
-| Metric | Description |
-|--------|-------------|
-| **Entropy** | Shannon entropy (drops during emergence) |
-| **Instruction Density** | Valid BrainFuck instructions |
-| **Compression Ratio** | How compressible programs are |
-| **Life Criteria** | Operational definition of life |
-
-### Operational Definition of Life
-
-Based on the BFF experiment, "life" requires all three:
-
-1. **Structure**: Instruction density ≥ 10%
-2. **Replication**: ≥ 5% are identical copies
-3. **Purpose**: Compression ratio ≤ 80%
-
-When running, watch for: `*** LIFE EMERGED ***`
+| Byte | Op | Meaning |
+|------|----|---------|
+| `>` 62 | move right | data pointer +1 (wraps) |
+| `<` 60 | move left | data pointer −1 (wraps) |
+| `+` 43 | increment | cell +1 mod 256 |
+| `-` 45 | decrement | cell −1 mod 256 |
+| `[` 91 | loop start | jump past matching `]` if cell = 0 |
+| `]` 93 | loop end | jump back to matching `[` if cell ≠ 0 |
+| `.` 46 | **copy** | copy current cell to the next cell |
+| any | no-op | everything else is skipped |
 
 ## Architecture
 
-```
-primordium/
-├── aether/          # BrainFuck interpreter (Python + C + CUDA)
-├── chaos/           # Soup and scroll management
-├── config/          # Pydantic configuration
-├── metrics/         # Metrics tracking
-├── layers/          # 7 evolutionary layers
-│   ├── genesis/     # Phylogeny tracking
-│   ├── gaia/       # Ecology & spatial
-│   ├── hermes/     # Error correction
-│   ├── mnemosyne/  # Memory
-│   ├── prometheus/ # Tools
-│   ├── nous/       # Meta-learning
-│   └── demiurge/   # Neural encoding
-├── scripts/        # Run scripts
-├── configs/        # Configuration templates
-└── FOUNDATION.md   # Scientific & technical details
+```mermaid
+flowchart LR
+    CLI[CLI - primordium run/analyse/benchmark] --> CFG[CONFIG - Pydantic genesis.yaml]
+    CFG --> CHAOS[CHAOS - Soup of scrolls]
+    CHAOS --> APEIRON[APEIRON - interaction rule + mutation]
+    APEIRON --> AETHER[AETHER - BF interpreter: Python / C / CUDA]
+    AETHER --> CHAOS
+    CHAOS --> METRICS[METRICS - entropy, density, compression, replicators]
+    METRICS --> CHRONICLE[(chronicle/<run>/ metrics.jsonl + checkpoints)]
+    CHRONICLE --> ORACLE[ORACLE - analyse, generate_viz, figures]
 ```
 
-## Recommended Build Order
+Seven optional evolutionary layers (GENESIS, GAIA, HERMES, MNEMOSYNE,
+PROMETHEUS, NOUS, DEMIURGE) are implemented as opt-in research modules and
+disabled by default — see
+[primordium/FOUNDATION.md](primordium/FOUNDATION.md).
 
-PRIMORDIUM uses a **phased approach**. All evolutionary layers are disabled by default - enable them incrementally based on what emerges:
+## Quick start
 
-| Phase | Components | Goal |
-|-------|------------|------|
-| **Phase 1** | AETHER, CHAOS, METRICS | Demonstrate phase transition at scale |
-| **Phase 2** | + GAIA | Add spatial dynamics (based on arXiv:2406.19108 Figure 8) |
-| **Phase 3-6** | + HERMES, MNEMOSYNE, PROMETHEUS, NOUS | Add layers based on what emerged |
-| **Phase 7+** | + DEMIURGE | Neural encoding after sufficient complexity |
+```bash
+git clone https://github.com/ArchishmanSengupta/primordium.git
+cd primordium
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ".[dev]"     # core: numpy + pydantic, no PyTorch needed
 
-**Key Principle**: Science must go bottom-up from observation, not top-down from theory. Build Phase 1 first, study what emerges, then design subsequent layers.
+primordium validate configs/template_quick.yaml
+primordium run configs/template_quick.yaml
+```
 
-See [FOUNDATION.md](primordium/FOUNDATION.md#recommended-build-order) for full details.
+Or: `bash scripts/run_quick.sh`. Expected: finishes in seconds, writes
+`chronicle/quick_test_<timestamp>/` with `metrics.jsonl` and checkpoints.
+`Life emerged: False` is normal at 1,000 interactions.
 
-## Scientific Foundations
+**Emergence runs** (minutes to hours; may print `*** LIFE EMERGED ***`):
 
-### Why Symbiogenesis?
+```bash
+primordium run configs/phase_transition.yaml   # extended default-budget run
+primordium run configs/paper_scale.yaml        # paper-aligned budget, see below
+```
 
-Traditional evolutionary algorithms use mutation + selection. But the BFF experiment showed:
+Optional neural layer (DEMIURGE): `pip install -e ".[neural]"`.
 
-- **Mutation is NOT required**: Life emerges even with mutation = 0
-- **Merger is powerful**: Combining programs creates new complexity
-- **Phase transitions are real**: Emergence happens suddenly
+## Results from a 34M-interaction run
 
-See [FOUNDATION.md](primordium/FOUNDATION.md) for:
-- Complete scientific background
-- Architecture details
-- Technical implementation
-- Layer descriptions
-- Configuration reference
+Measured on `configs/demo_record_emergence.yaml` (512 scrolls × 64 B,
+C backend, ~124K interactions/s). Structure rose and entropy fell, but no
+life criteria were met at this step budget:
+
+| Metric | Initial | Final | Life threshold |
+|--------|---------|-------|----------------|
+| Entropy (bits/byte) | 5.77 | 5.41 | falls during emergence |
+| Instruction density | 0.027 | 0.055 | ≥ 0.10 |
+| Compression ratio | ~1.17 | ~1.17 | ≤ 0.80 |
+| Replication | — | not met | ≥ 5% replicators |
+
+![Metrics evolution over 34M interactions](docs/assets/metrics_evolution.png)
+
+![Life criteria over 34M interactions](docs/assets/life_criteria.png)
+
+**Why no transition?** The original paper runs 2^17 = 131,072 programs of
+64 bytes with a generous per-interaction step budget, and community
+replications use `max_steps = 16,384`. This run starved every interaction at
+350 steps — copies never complete. `configs/paper_scale.yaml` aligns the
+budget with the paper (1,024 scrolls, 16,384 steps/interaction, 50M
+interactions). The 2026 follow-up [arXiv:2607.01483](https://arxiv.org/abs/2607.01483)
+also shows random background mutation alone finds self-replicators faster
+than pairwise interaction — reproducible here via `apeiron.mutation_rate`.
+
+## Life detection
+
+Operational criteria (from the Computational Life experiment):
+
+1. **Structure** — instruction density ≥ 10%
+2. **Replication** — ≥ 5% identical copies in the soup
+3. **Purpose** — compression ratio ≤ 80%
+
+All three must hold for `*** LIFE EMERGED ***`.
 
 ## Performance
 
+Measured with `primordium benchmark` (256 scrolls × 48 B, max_steps 350):
+
 | Backend | Speed |
 |---------|-------|
-| Python | ~26K int/s |
-| C | ~114K int/s |
-| CUDA | ~100M+ int/s |
+| Python | ~25–35K int/s |
+| C | ~125K int/s |
+| CUDA | varies (GPU) |
+
+Soup metrics are vectorized with NumPy (3–6× faster per call than the
+original pure-Python loops).
+
+## Configs
+
+| File | Purpose |
+|------|---------|
+| `configs/template_quick.yaml` | Smoke test (1k interactions) |
+| `configs/template_full.yaml` | All options documented |
+| `configs/phase_transition.yaml` | Long default-budget run |
+| `configs/paper_scale.yaml` | Paper-aligned budget (16,384 steps/interaction) |
+| `configs/scaling_study.yaml` | Soup size sweep |
+| `configs/with_layers.yaml` | Enable optional layers |
+| `configs/demo_record*.yaml` | Demo-recording runs (5M–34M) |
+
+## Visualization
+
+After a run:
+
+```bash
+python scripts/generate_viz.py chronicle/<your_run_dir>        # self-contained HTML dashboard
+python scripts/generate_readme_figures.py chronicle/<run_dir> # PNG metrics figures
+primordium analyse chronicle/<your_run_dir>                   # text report
+```
+
+See [docs/visualization.md](docs/visualization.md).
+
+## Project layout
+
+```
+primordium/          # Python package (aether, chaos, config, metrics, layers, …)
+configs/             # YAML experiment templates
+scripts/             # run_quick.sh, generate_viz.py, figure generator, …
+docs/                # Tech report, guides, figure assets
+demo/                # Terminal demo (VHS tape + rendered GIF/MP4)
+tests/               # pytest suite
+chronicle/           # Run outputs (gitignored)
+```
 
 ## Development
 
 ```bash
-# Run all tests
-pytest tests/
-
-# Run specific test file
-pytest tests/metrics/test_metrics.py -v
-
-# Compile C backend (optional)
-python -m primordium.aether.compiler
-
-# Validate config
+pytest tests/ -q
+ruff check primordium/ --select E,F,W --ignore E501
 primordium validate configs/template_full.yaml
 ```
 
-## Research Questions
-
-PRIMORDIUM explores:
-
-1. Can symbiogenesis produce more complex organisms than mutation alone?
-2. What is the nature of the gelation transition in program space?
-3. Can BF programs evolve to write neural networks?
-4. Is life simply a thermodynamic inevitability?
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## References
 
-- Agüera y Arcas, B. (2024). *What is Intelligence?* MIT Press
+- Agüera y Arcas, B., Alakuijala, J., Evans, J., Laurie, B., Mordvintsev, A., Niklasson, E., Randazzo, E., & Versari, L. (2024). *Computational Life: How Well-formed, Self-replicating Programs Emerge from Simple Interaction.* [arXiv:2406.19108](https://arxiv.org/abs/2406.19108)
+- Knierim, C., Versari, L., Obryk, R., Agüera y Arcas, B., & Saurous, R. A. (2026). *BFF: Simple explanations for complex phenomena.* [arXiv:2607.01483](https://arxiv.org/abs/2607.01483)
+- Cicala, F., Niklasson, E., Randazzo, E., et al. (2026). *Co-evolution of self-replication and function in a digital primordial soup.* [arXiv:2607.09211](https://arxiv.org/abs/2607.09211)
 - Margulis, L. (1970). *Origin of Eukaryotic Cells*
-- Goldstein, A. (1995). *Dynamic Kinetic Stability*
+- Pross, A. (2005). Stability in chemistry and biology: Life as a kinetic state of matter
 
 ## License
 
-MIT
-
----
-
-*PRIMORDIUM - From chaos, order. From noise, life.*
+MIT — see [LICENSE](LICENSE).

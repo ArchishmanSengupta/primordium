@@ -6,7 +6,7 @@ Named after the Greek goddess of memory - stores patterns across generations.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import numpy as np
 from collections import deque
 
@@ -33,6 +33,9 @@ class PatternMemory:
         if pattern_hash in self.pattern_frequencies:
             self.pattern_frequencies[pattern_hash] += 1
         else:
+            if self.patterns.maxlen is not None and len(self.patterns) == self.patterns.maxlen:
+                evicted = self.patterns[0]
+                self.pattern_frequencies.pop(evicted['hash'], None)
             self.pattern_frequencies[pattern_hash] = 1
             self.patterns.append({
                 'tape': tape.copy(),
@@ -102,13 +105,20 @@ class LongTermMemory:
             'fitness': fitness,
         }
 
-        # Also add to overall best if it's good enough
-        if len(self.best_patterns) < self.max_size or fitness > self.best_patterns[0].get('fitness', 0):
-            self.best_patterns.append({
-                'epoch': epoch,
-                'tape': tape.copy(),
-                'fitness': fitness,
-            })
+        entry = {
+            'epoch': epoch,
+            'tape': tape.copy(),
+            'fitness': fitness,
+        }
+
+        if len(self.best_patterns) < self.max_size:
+            self.best_patterns.append(entry)
+            return
+
+        worst = min(self.best_patterns, key=lambda p: p.get('fitness', 0.0))
+        if fitness > worst.get('fitness', 0.0):
+            self.best_patterns.remove(worst)
+            self.best_patterns.append(entry)
 
     def get_best_overall(self, top_k: int = 10) -> List[Dict]:
         """Get top k best patterns overall."""

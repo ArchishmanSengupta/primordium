@@ -39,6 +39,10 @@ class PhylogenyTracker:
         # Add edge
         self.graph.add_edge(parent_id, child_id)
 
+        parent_gen = self.graph.nodes[parent_id].get('generation', 0)
+        child_gen = self.graph.nodes[child_id].get('generation', 0)
+        self.graph.nodes[child_id]['generation'] = max(child_gen, parent_gen + 1)
+
     def get_ancestors(self, scroll_id: str, depth: int = None) -> List[str]:
         """Get ancestors of a scroll.
 
@@ -53,13 +57,11 @@ class PhylogenyTracker:
             depth = self.max_depth
 
         try:
-            ancestors = list(nx.ancestors(self.graph, scroll_id))
-            # Limit by depth
-            if depth < self.max_depth:
-                # Filter to only recent ancestors
-                # This is a simplified version
-                return ancestors[:depth]
-            return ancestors
+            reverse_graph = self.graph.reverse(copy=False)
+            reachable = nx.single_source_shortest_path_length(
+                reverse_graph, scroll_id, cutoff=depth
+            )
+            return [n for n in reachable if n != scroll_id]
         except nx.NetworkXError:
             return []
 
@@ -117,19 +119,42 @@ class GenesisLayer:
         else:
             self.tracker = None
 
+        self._last_copy_counts: Dict[str, int] = {}
+
     def after_interaction(self, soup, i: int, j: int, steps: int) -> None:
-        """After interaction, check if replication occurred.
+        """After interaction, record replication lineage.
 
         In the APEIRON model, replication happens implicitly when bytes
-        are copied from one scroll to another during interaction.
+        are copied from one scroll to another during interaction. A
+        copy_count increase on scroll i means i's content was copied
+        into j's tape, so j descends from i for this interaction.
         """
         if not self.enabled or not self.track_phylogeny:
             return
 
-        # Check for byte-level copying between scrolls
-        # This is a simplified heuristic - in practice would track
-        # more carefully which bytes were modified
-        pass
+        scroll_i = soup.scrolls[i]
+        scroll_j = soup.scrolls[j]
+
+        last_i = self._last_copy_counts.get(scroll_i.id, scroll_i.copy_count)
+        last_j = self._last_copy_counts.get(scroll_j.id, scroll_j.copy_count)
+
+        if scroll_i.copy_count > last_i:
+            self.tracker.add_replication(
+                parent_id=scroll_i.id,
+                child_id=scroll_j.id,
+                parent_tape=scroll_i.tape.tobytes(),
+                child_tape=scroll_j.tape.tobytes(),
+            )
+        if scroll_j.copy_count > last_j:
+            self.tracker.add_replication(
+                parent_id=scroll_j.id,
+                child_id=scroll_i.id,
+                parent_tape=scroll_j.tape.tobytes(),
+                child_tape=scroll_i.tape.tobytes(),
+            )
+
+        self._last_copy_counts[scroll_i.id] = scroll_i.copy_count
+        self._last_copy_counts[scroll_j.id] = scroll_j.copy_count
 
     def after_epoch(self, soup, epoch: int) -> Dict[str, Any]:
         """After epoch, return phylogeny statistics."""

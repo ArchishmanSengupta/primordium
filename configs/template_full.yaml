@@ -36,6 +36,7 @@ apeiron:
   rule: standard               # Interaction rule: standard
   selection: uniform           # Selection method: uniform, spatial, fitness_biased
   # spatial_radius: 5          # Radius for spatial selection (if enabled)
+  mutation_rate: 0.0           # Per-byte background mutation after interaction (0.0 = symbiogenesis only)
 
 # EVOLUTIONARY LAYERS
 # -------------------

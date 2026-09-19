@@ -3,6 +3,12 @@
 This script runs the soup and evaluates fitness on a copy task.
 """
 
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
 import numpy as np
 from primordium.chaos import Soup
 from primordium.aether import engine

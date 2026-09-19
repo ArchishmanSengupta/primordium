@@ -26,18 +26,16 @@ class ErrorCorrector:
         Returns:
             True if balanced
         """
-        balance = 0
-        for cell in tape:
-            if cell == 91:  # '['
-                balance += 1
-            elif cell == 93:  # ']'
-                balance -= 1
-            if balance < 0:
-                return False
-        return balance == 0
+        if len(tape) == 0:
+            return True
+        bal = np.cumsum((tape == 91).astype(np.int64) - (tape == 93).astype(np.int64))
+        return bool(bal[-1] == 0 and bal.min() >= 0)
 
     def correct_bracket_imbalance(self, tape: np.ndarray) -> np.ndarray:
-        """Add missing brackets to balance program.
+        """Repair bracket structure so loops can execute.
+
+        Neutralizes any ']' that opens before its matching '[', then closes
+        leftover unmatched '[' by overwriting the byte that follows it.
 
         Args:
             tape: BF tape to correct
@@ -48,34 +46,38 @@ class ErrorCorrector:
         if self.check_bracket_balance(tape):
             return tape
 
-        open_count = np.sum(tape == 91)
-        close_count = np.sum(tape == 93)
-
         corrected = tape.copy()
+        changed = False
 
-        if open_count > close_count:
-            missing = open_count - close_count
-            for _ in range(missing):
-                stack = []
-                for i in range(len(corrected)):
-                    if corrected[i] == 91:
-                        stack.append(i)
-                    elif corrected[i] == 93 and stack:
-                        stack.pop()
-                if stack:
-                    insert_pos = stack[-1] + 1
-                    if insert_pos < len(corrected):
-                        corrected[insert_pos] = 93
+        balance = 0
+        for i in range(len(corrected)):
+            if corrected[i] == 91:
+                balance += 1
+            elif corrected[i] == 93:
+                if balance == 0:
+                    corrected[i] = 0
+                    changed = True
+                else:
+                    balance -= 1
 
-        elif close_count > open_count:
-            missing = close_count - open_count
-            for _ in range(missing):
-                for i in range(len(corrected) - 1, -1, -1):
-                    if corrected[i] == 93:
-                        corrected[i] = 91
-                        break
+        for _ in range(len(corrected)):
+            stack = []
+            for i in range(len(corrected)):
+                if corrected[i] == 91:
+                    stack.append(i)
+                elif corrected[i] == 93 and stack:
+                    stack.pop()
+            if not stack:
+                break
+            insert_pos = stack[-1] + 1
+            if insert_pos >= len(corrected):
+                corrected[stack[-1]] = 0
+            else:
+                corrected[insert_pos] = 93
+            changed = True
 
-        self.corrected_count += 1
+        if changed:
+            self.corrected_count += 1
         return corrected
 
 
@@ -94,7 +96,7 @@ class SignalPropagator:
             'data': data,
         })
 
-    def get_signals(self, scroll_id: str = None, signal_type: str = None) -> List[Dict]:
+    def get_signals(self, scroll_id: Optional[str] = None, signal_type: Optional[str] = None) -> List[Dict]:
         """Get signals matching criteria."""
         results = list(self.signal_buffer)
 
@@ -183,7 +185,7 @@ class HermesLayer:
             'hermes_signal_buffer_size': len(self.signal_propagator.signal_buffer),
         }
 
-    def get_signals(self, scroll_id: str = None, signal_type: str = None) -> List[Dict]:
+    def get_signals(self, scroll_id: Optional[str] = None, signal_type: Optional[str] = None) -> List[Dict]:
         """Get signals from buffer."""
         return self.signal_propagator.get_signals(scroll_id, signal_type)
 

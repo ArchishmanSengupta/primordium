@@ -99,6 +99,12 @@ class ApeironConfig(BaseModel):
         None,
         description="Radius for spatial selection"
     )
+    mutation_rate: float = Field(
+        0.0,
+        ge=0.0,
+        le=1.0,
+        description="Per-byte probability of random background mutation after each interaction (0.0 = symbiogenesis only)"
+    )
 
 
 class GenesisLayerConfig(BaseModel):

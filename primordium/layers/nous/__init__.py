@@ -6,7 +6,7 @@ Named after the Greek concept of intellect/reason - the highest cognitive facult
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 import numpy as np
 from collections import deque
 
@@ -16,6 +16,7 @@ class SelfModel:
 
     def __init__(self):
         self.behavior_history = deque(maxlen=1000)
+        self.recent_fitness = deque(maxlen=100)
         self.capability_estimate = 0.0
 
     def record_behavior(self, steps: int, fitness: float):
@@ -24,10 +25,9 @@ class SelfModel:
             'steps': steps,
             'fitness': fitness,
         })
-        # Update capability estimate
-        if self.behavior_history:
-            recent = list(self.behavior_history)[-100:]
-            self.capability_estimate = np.mean([b['fitness'] for b in recent])
+        self.recent_fitness.append(fitness)
+        if self.recent_fitness:
+            self.capability_estimate = float(np.mean(self.recent_fitness))
 
     def get_model(self) -> Dict[str, float]:
         """Get current self-model."""

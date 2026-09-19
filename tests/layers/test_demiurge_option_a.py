@@ -217,6 +217,8 @@ class TestOptionAIntegration:
         The "behavior" here is: what does the combined program do to itself?
         After merging two programs, how do they change?
         """
+        np.random.seed(42)
+        torch.manual_seed(42)
 
         # Step 1: Create two known programs
         # Program A: does something

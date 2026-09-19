@@ -32,14 +32,14 @@ class MesaOptimizationDetector:
         x = np.arange(len(fitnesses))
         y = np.array(fitnesses)
         try:
-            slope, _ = np.polyfit(x, y, 1)
-        except:
+            slope, intercept = np.polyfit(x, y, 1)
+        except Exception:
             return False
 
-        residuals = y - (slope * x + y[0])
-        variance = np.var(residuals)
+        residuals = y - (slope * x + intercept)
+        variance = float(np.var(residuals))
 
-        return slope > 0.01 and variance < 0.1
+        return bool(slope > 0.01 and variance < 0.1)
 
     def detect_goal_states(self, tape: np.ndarray) -> bool:
         if len(tape) < 16:
@@ -67,7 +67,6 @@ class MesaOptimizationDetector:
         if abs(loop_starts - loop_ends) > 2:
             return False
 
-        nested_loops = 0
         depth = 0
         max_depth = 0
         for byte in tape:
@@ -124,8 +123,8 @@ class MesaNousLayer:
         fitness_i = getattr(scroll_i, 'fitness', 0.0)
         fitness_j = getattr(scroll_j, 'fitness', 0.0)
 
-        trace_i = {'steps': steps, 'fitness': fitness_i, 'tape_deltas': [0, 0, 0]}
-        trace_j = {'steps': steps, 'fitness': fitness_j, 'tape_deltas': [0, 0, 0]}
+        trace_i = {'steps': steps, 'fitness': fitness_i}
+        trace_j = {'steps': steps, 'fitness': fitness_j}
 
         self.mesa_detector.record_trace(scroll_i.id, trace_i)
         self.mesa_detector.record_trace(scroll_j.id, trace_j)

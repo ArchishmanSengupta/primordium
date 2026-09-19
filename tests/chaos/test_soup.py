@@ -104,6 +104,92 @@ class TestSoupInteraction:
         assert steps >= 0
 
 
+class TestSoupReplicationAttribution:
+    """Tests for per-scroll replication attribution in interactions."""
+
+    def test_copy_count_attribution(self, monkeypatch):
+        """Only the scroll whose content appears in the other output gains a count."""
+        from primordium.chaos.soup import Soup
+
+        soup = Soup(size=10, tape_length=48, seed=7)
+        monkeypatch.setattr(soup, "select_pair", lambda: (3, 4))
+
+        def fake_run_bf(scroll_a, scroll_b, max_steps=350, tape_length=None):
+            new_a = np.array(scroll_a, dtype=np.uint8).copy()
+            new_b = np.array(scroll_a, dtype=np.uint8).copy()
+            return new_a, new_b, 5
+
+        monkeypatch.setattr("primordium.aether.interpreter.run_bf", fake_run_bf)
+        soup.interact(max_steps=350)
+        assert soup.scrolls[3].copy_count == 1
+        assert soup.scrolls[4].copy_count == 0
+
+
+class TestSoupMutation:
+    """Tests for random background mutation."""
+
+    def test_zero_rate_preserves_tapes(self, monkeypatch):
+        """mutation_rate=0 leaves interaction output untouched."""
+        from primordium.chaos.soup import Soup
+
+        soup = Soup(size=10, tape_length=48, seed=7, mutation_rate=0.0)
+        monkeypatch.setattr(soup, "select_pair", lambda: (3, 4))
+
+        def fake_run_bf(scroll_a, scroll_b, max_steps=350, tape_length=None):
+            new_a = np.array(scroll_a, dtype=np.uint8).copy()
+            new_b = np.array(scroll_b, dtype=np.uint8).copy()
+            return new_a, new_b, 5
+
+        monkeypatch.setattr("primordium.aether.interpreter.run_bf", fake_run_bf)
+        before_3 = soup.scrolls[3].tape.copy()
+        before_4 = soup.scrolls[4].tape.copy()
+        soup.interact(max_steps=350)
+        assert np.array_equal(soup.scrolls[3].tape, before_3)
+        assert np.array_equal(soup.scrolls[4].tape, before_4)
+
+    def test_full_rate_rewrites_bytes(self, monkeypatch):
+        """mutation_rate=1 rewrites every byte of the interacting pair."""
+        from primordium.chaos.soup import Soup
+
+        soup = Soup(size=10, tape_length=48, seed=7, mutation_rate=1.0)
+        monkeypatch.setattr(soup, "select_pair", lambda: (3, 4))
+
+        def fake_run_bf(scroll_a, scroll_b, max_steps=350, tape_length=None):
+            return (
+                np.zeros(48, dtype=np.uint8),
+                np.zeros(48, dtype=np.uint8),
+                5,
+            )
+
+        monkeypatch.setattr("primordium.aether.interpreter.run_bf", fake_run_bf)
+        soup.interact(max_steps=350)
+        assert soup.scrolls[3].tape.any()
+        assert soup.scrolls[4].tape.any()
+        assert (soup.scrolls[3].tape != 0).all()
+
+    def test_mutation_uses_soup_rng(self, monkeypatch):
+        """Mutation draws from the soup RNG so runs stay reproducible."""
+        from primordium.chaos.soup import Soup
+
+        def run_once(seed):
+            soup = Soup(size=10, tape_length=48, seed=seed, mutation_rate=1.0)
+            monkeypatch.setattr(soup, "select_pair", lambda: (3, 4))
+
+            def fake_run_bf(scroll_a, scroll_b, max_steps=350, tape_length=None):
+                return (
+                    np.zeros(48, dtype=np.uint8),
+                    np.zeros(48, dtype=np.uint8),
+                    5,
+                )
+
+            monkeypatch.setattr("primordium.aether.interpreter.run_bf", fake_run_bf)
+            soup.interact(max_steps=350)
+            return soup.scrolls[3].tape.copy()
+
+        assert np.array_equal(run_once(99), run_once(99))
+        assert not np.array_equal(run_once(99), run_once(100))
+
+
 class TestSoupCheckpoint:
     """Tests for checkpoint save/load."""
 
@@ -206,4 +292,3 @@ class TestSoupIteration:
         soup = Soup(size=10, tape_length=48, seed=42)
         scroll = soup.get_scroll(5)
         assert len(scroll.tape) == 48
-

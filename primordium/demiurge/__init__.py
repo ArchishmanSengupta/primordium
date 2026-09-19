@@ -1,11 +1,14 @@
-"""DEMIURGE: Neural architecture encoding for PRIMORDIUM."""
+from __future__ import annotations
 
+import json
 from typing import Any, Dict
 
+
 def encode_architecture(arch_dict: Dict[str, Any]) -> bytes:
-    """Encode neural architecture as bytes for scroll."""
-    return b""
+    return json.dumps(arch_dict, separators=(",", ":")).encode("utf-8")
+
 
 def decode_architecture(tape: bytes) -> Dict[str, Any]:
-    """Decode scroll bytes into neural architecture."""
-    return {}
+    if not tape:
+        return {}
+    return json.loads(tape.decode("utf-8"))

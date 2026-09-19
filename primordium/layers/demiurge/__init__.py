@@ -57,7 +57,7 @@ class BFEncoder(nn.Module if TORCH_AVAILABLE else object):
         """
         # Use tape weights to transform input
         # Each input element selects a weight row
-        batch_size = x.shape[0]
+        x.shape[0]
 
         # Normalize input to index tape positions
         indices = (x.abs().mean(dim=-1) * self.tape_length).long()
