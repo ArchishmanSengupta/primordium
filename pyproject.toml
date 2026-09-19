@@ -14,20 +14,21 @@ authors = [
 ]
 dependencies = [
     "numpy>=1.20.0",
-    "torch>=2.0.0",
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
     "click>=8.0.0",
-    "rich>=13.0.0",
     "networkx>=3.0",
-    "matplotlib>=3.5.0",
 ]
 
 [project.optional-dependencies]
+neural = [
+    "torch>=2.0.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "ruff>=0.4.0",
+    "matplotlib>=3.5.0",
 ]
 
 [project.urls]

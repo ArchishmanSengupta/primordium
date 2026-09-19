@@ -1,8 +1,17 @@
 import numpy as np
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from typing import Dict, Any, List, Optional
+
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+
+    TORCH_AVAILABLE = True
+except ImportError:
+    torch = None
+    F = None
+    TORCH_AVAILABLE = False
+    nn = object
 
 
 LOGIC_GATES = {
@@ -15,8 +24,13 @@ LOGIC_GATES = {
 }
 
 
-class DiffLogicBFEncoder(nn.Module):
+class DiffLogicBFEncoder(nn.Module if TORCH_AVAILABLE else object):
     def __init__(self, tape_length: int = 48, hidden_size: int = 64, device: str = 'cpu'):
+        if not TORCH_AVAILABLE:
+            raise RuntimeError(
+                "PyTorch required for the DiffLogic DEMIURGE layer; "
+                "install with: pip install primordium[neural]"
+            )
         super().__init__()
         self.tape_length = tape_length
         self.hidden_size = hidden_size
