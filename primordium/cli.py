@@ -10,8 +10,9 @@ import logging
 import os
 import sys
 import time
-from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
+
+from primordium.metrics.writer import MetricsWriter
 
 # Set up logging
 logging.basicConfig(
@@ -19,6 +20,40 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+def _metrics_record(
+    interaction: int,
+    event: str,
+    soup,
+    thresholds: Dict[str, float],
+    sample_size: int,
+    **extra: Any,
+) -> Dict[str, Any]:
+    from primordium.metrics import (
+        soup_entropy,
+        instruction_density as calc_instruction_density,
+        soup_compression_ratio,
+        detect_life_criteria,
+    )
+
+    criteria = detect_life_criteria(
+        soup,
+        instruction_density_threshold=thresholds.get("instruction_density", 0.1),
+        replicator_fraction_threshold=thresholds.get("replicator_fraction", 0.05),
+        compression_ratio_threshold=thresholds.get("compression_ratio", 0.8),
+    )
+    record: Dict[str, Any] = {
+        "interaction": interaction,
+        "event": event,
+        "instruction_density": calc_instruction_density(soup),
+        "entropy": soup_entropy(soup),
+        "compression_ratio": soup_compression_ratio(soup, sample_size=sample_size),
+        "is_life": criteria["is_life"],
+        "criteria_met": criteria["criteria_met"],
+    }
+    record.update(extra)
+    return record
 
 
 def setup_logging(level: str) -> None:
@@ -55,7 +90,6 @@ def run(config_file: str, resume: bool):
         instruction_density as calc_instruction_density,
         soup_compression_ratio,
         detect_life_criteria,
-        count_replicators,
     )
 
     # Load configuration
@@ -118,7 +152,6 @@ def run(config_file: str, resume: bool):
     if use_c_backend:
         from primordium.aether import engine as c_engine
 
-        original_interact = Soup.interact
 
         def c_interact(self, max_steps=350):
             i, j = self.select_pair()
@@ -160,6 +193,13 @@ def run(config_file: str, resume: bool):
     logger.info(f"Entropy: {initial_entropy:.4f}")
     logger.info(f"Compression ratio: {initial_comp_ratio:.4f}")
     logger.info(f"Life criteria met: {initial_criteria['criteria_met']}")
+
+    sample_size = min(50, config.chaos.size)
+    metrics_writer = MetricsWriter(output_dir)
+    metrics_writer.open(append=False)
+    metrics_writer.write(
+        _metrics_record(0, "initial", soup, thresholds, sample_size)
+    )
 
     # Save initial checkpoint
     checkpoint_dir = os.path.join(output_dir, 'checkpoints')
@@ -215,6 +255,18 @@ def run(config_file: str, resume: bool):
                 log_msg += " *** LIFE EMERGED ***"
 
             logger.info(log_msg)
+            metrics_writer.write(
+                _metrics_record(
+                    i + 1,
+                    "log",
+                    soup,
+                    thresholds,
+                    sample_size,
+                    avg_ops=avg_ops,
+                    rate=rate,
+                    elapsed_s=elapsed,
+                )
+            )
 
         # Checkpoint
         if (i + 1) % checkpoint_every == 0:
@@ -257,6 +309,22 @@ def run(config_file: str, resume: bool):
     logger.info(f"Elapsed time: {elapsed:.1f}s")
     logger.info(f"Rate: {interactions_total/elapsed:.1f} int/s")
     logger.info(f"Output: {output_dir}")
+    metrics_writer.write(
+        _metrics_record(
+            interactions_total,
+            "final",
+            soup,
+            thresholds,
+            sample_size,
+            total_ops=total_ops,
+            avg_ops=avg_ops_final,
+            elapsed_s=elapsed,
+            rate=interactions_total / elapsed if elapsed > 0 else 0.0,
+            layer_stats={},
+        )
+    )
+    metrics_writer.close()
+    logger.info(f"Metrics log: {metrics_writer.path}")
 
     # Save config copy
     from primordium.config import save_config
@@ -274,8 +342,14 @@ def analyse(results_dir: str, interactive: bool):
 
     RESULTS_DIR: Path to experiment output directory
     """
-    click.echo(f"Analyzing results in: {results_dir}")
-    click.echo("(Analysis dashboard not yet implemented)")
+    from primordium.oracle import ExperimentRun
+
+    run = ExperimentRun(results_dir)
+    run.load()
+    report = run.generate_report()
+    click.echo(report)
+    if interactive:
+        click.echo("(Interactive dashboard not yet implemented)")
 
 
 @cli.command()
@@ -334,7 +408,7 @@ def validate(config_file: str):
 
     try:
         config = load_config(config_file)
-        click.echo(f"Configuration is valid!")
+        click.echo("Configuration is valid!")
         click.echo(f"  Experiment: {config.experiment.name}")
         click.echo(f"  Soup size: {config.chaos.size}")
         click.echo(f"  Tape length: {config.chaos.tape_length}")

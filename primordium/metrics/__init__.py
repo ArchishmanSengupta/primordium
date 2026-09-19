@@ -3,7 +3,7 @@
 This module provides various metrics to measure the state of the soup.
 """
 
-from typing import Dict, Any
+from typing import Dict
 import numpy as np
 from collections import Counter
 
@@ -305,9 +305,9 @@ def detect_life_criteria(
 
     # Evaluate criteria
     criteria_met = {
-        "structure": inst_density >= instruction_density_threshold,
-        "replication": replicator_fraction >= replicator_fraction_threshold,
-        "purpose": comp_ratio <= compression_ratio_threshold,
+        "structure": bool(inst_density >= instruction_density_threshold),
+        "replication": bool(replicator_fraction >= replicator_fraction_threshold),
+        "purpose": bool(comp_ratio <= compression_ratio_threshold),
     }
 
     is_life = all(criteria_met.values())
