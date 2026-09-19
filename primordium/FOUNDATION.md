@@ -55,7 +55,7 @@ PRIMORDIUM is directly inspired by Blaise Agüera y Arcas's BFF (BrainFuck Frien
 
 3. **Symbiogenesis > Mutation**: Merging (concatenation) is more powerful than random mutation for creating complexity.
 
-4. **Thermodynamic Foundation**: The emergence of purpose is explained by "dynamic kinetic stability" (Adi Goldstein) - systems that can make more copies of themselves are more stable.
+4. **Thermodynamic Foundation**: The emergence of purpose is explained by "dynamic kinetic stability" (Addy Pross) - systems that can make more copies of themselves are more stable.
 
 ### PRIMORDIUM's Relationship to BFF
 
@@ -621,7 +621,7 @@ This section documents the research enhancements built on top of PRIMORDIUM base
 Implements differentiable logic gates for encoding BrainFuck programs as neural network weights. This enables gradient-based optimization of BF programs.
 
 **Key Features**:
-- 16 differentiable logic operations (AND, OR, XOR, NAND, etc.)
+- 6 differentiable logic gates (AND, OR, XOR, NAND, NOR, XNOR) with learnable gate logits
 - MPS acceleration on Apple Silicon
 - Fault-tolerant: small perturbations don't break functionality
 
@@ -642,7 +642,7 @@ layer = DiffLogicDemiurgeLayer(config)
 
 ### 2. Mesa-Optimization Detection (NOUS)
 
-**Paper**: "Uncovering mesa-optimization algorithms in Transformers" (arXiv:2410.18636)
+**Paper**: "Uncovering mesa-optimization algorithms in Transformers" (von Oswald et al., arXiv:2309.05858)
 
 **File**: `primordium/layers/nous/mesa.py`
 
@@ -668,7 +668,7 @@ layer = MesaNousLayer(config)
 
 ### 3. State Soup MNEMOSYNE
 
-**Paper**: "State Soup: In-Context Skill Learning" (arXiv:2410.13989)
+**Paper**: "State Soup: In-Context Skill Learning, Retrieval and Mixing" (Pióro et al., arXiv:2406.08423)
 
 **File**: `primordium/layers/mnemosyne/statesoup.py`
 
@@ -757,14 +757,16 @@ Only when programs have evolved sufficient internal structure (likely after Laye
 ## References
 
 1. Margulis, L. (1970). *Origin of Eukaryotic Cells*
-2. Tyler, C. (1992). Cellular automata models in biology
+2. Fontana, W. (1992). Algorithmic chemistry. In: *Towards a Practice of Autonomous Systems*
 3. Stanley, K.O. (2007). Compositional Pattern Producing Networks
 4. Bak, P. (1996). *How Nature Works: The Science of Self-Organized Criticality*
-5. Agüera y Arcas, B. et al. (2024). "Life from the machine: emergence in self-replicating automata." arXiv:2406.19108
-6. Agüera y Arcas, B. (2024). *What is Intelligence?* MIT Press
-7. Goldstein, A. (1995). Dynamic Kinetic Stability
+5. Agüera y Arcas, B., Alakuijala, J., Evans, J., Laurie, B., Mordvintsev, A., Niklasson, E., Randazzo, E., & Versari, L. (2024). "Computational Life: How Well-formed, Self-replicating Programs Emerge from Simple Interaction." arXiv:2406.19108
+6. Agüera y Arcas, B. (2025). *What Is Intelligence?* MIT Press
+7. Pross, A. (2005). Stability in chemistry and biology: Life as a kinetic state of matter. *Pure Appl. Chem.* 77(11)
 8. Von Neumann, J. (1966). *Theory of Self-Reproducing Automata*
 9. Margulis & Sagan (2002). *Acquiring Genomes*
+10. Knierim, C., Versari, L., Obryk, R., Agüera y Arcas, B., & Saurous, R. A. (2026). "BFF: Simple explanations for complex phenomena." arXiv:2607.01483
+11. Cicala, F., Niklasson, E., Randazzo, E., et al. (2026). "Co-evolution of self-replication and function in a digital primordial soup." arXiv:2607.09211
 
 ---
 
