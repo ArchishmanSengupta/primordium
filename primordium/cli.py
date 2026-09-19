@@ -374,7 +374,6 @@ def benchmark():
     """Run speed benchmarks on all available backends."""
     click.echo("Running benchmarks...")
 
-    # Benchmark Python backend
     from primordium.chaos import Soup
     import time
 
@@ -387,6 +386,39 @@ def benchmark():
 
     rate = 1000 / elapsed
     click.echo(f"Python backend: {rate:.1f} interactions/second")
+
+    from primordium.aether import engine as c_engine
+
+    if c_engine.get_engine() is None:
+        click.echo("C backend: unavailable (gcc or engine.c missing)")
+        return
+
+    original_interact = Soup.interact
+
+    def c_interact(self, max_steps=350):
+        i, j = self.select_pair()
+        scroll_i = self.scrolls[i]
+        scroll_j = self.scrolls[j]
+        new_i, new_j, steps = c_engine.run_bf_c(
+            scroll_i.tape,
+            scroll_j.tape,
+            max_steps=max_steps,
+            tape_length=self.tape_length,
+        )
+        self.scrolls[i].tape = new_i
+        self.scrolls[j].tape = new_j
+        return steps
+
+    Soup.interact = c_interact
+    try:
+        soup_c = Soup(size=256, tape_length=48, seed=42)
+        start = time.time()
+        for _ in range(1000):
+            soup_c.interact(max_steps=350)
+        elapsed = time.time() - start
+        click.echo(f"C backend: {1000 / elapsed:.1f} interactions/second")
+    finally:
+        Soup.interact = original_interact
 
 
 @cli.command()
