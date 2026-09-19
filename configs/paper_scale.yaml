@@ -1,0 +1,61 @@
+# Paper-scale experiment: parameters aligned with arXiv:2406.19108
+# ("Computational Life") and the jonas-werner/bff-emergent-complexity
+# replication. The original paper runs 2^17 = 131,072 programs of 64 bytes;
+# this config uses the community replication scale (1,024 x 64).
+#
+# Key differences from the default template:
+#   - max_steps_per_interaction: 16,384 (starved step budgets stall replication;
+#     the default 350 cuts execution before copies can complete)
+#   - interactions_total: 50M (replications observed emergence between ~6-16M
+#     interactions; this leaves headroom)
+#
+# arXiv:2607.01483 ("BFF: Simple explanations for complex phenomena") shows
+# distributionally-tuned random mutation finds self-replicators faster than
+# pairwise interaction alone; set apeiron.mutation_rate (e.g. 0.0001) to study
+# that regime.
+
+experiment:
+  name: paper_scale
+  seed: 42
+  output_dir: "./chronicle/{name}_{timestamp}"
+
+chaos:
+  size: 1024
+  tape_length: 64
+  initialisation: random
+
+aether:
+  backend: c
+  device: cpu
+  interactions_total: 50000000
+  max_steps_per_interaction: 16384
+  checkpoint_every: 1000000
+
+apeiron:
+  rule: standard
+  selection: uniform
+  mutation_rate: 0.0
+
+layers:
+  genesis:
+    enabled: false
+  gaia:
+    enabled: false
+  hermes:
+    enabled: false
+  mnemosyne:
+    enabled: false
+  prometheus:
+    enabled: false
+  nous:
+    enabled: false
+
+metrics:
+  log_interval: 250000
+  life_criteria_thresholds:
+    instruction_density: 0.1
+    replicator_fraction: 0.05
+    compression_ratio: 0.8
+
+logging:
+  level: info
