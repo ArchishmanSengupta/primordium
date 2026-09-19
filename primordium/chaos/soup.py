@@ -145,13 +145,11 @@ class Soup:
         from primordium.aether.interpreter import VALID_OPS
 
         total_bytes = self.size * self.tape_length
-        valid_count = 0
+        if total_bytes == 0:
+            return 0.0
 
-        for scroll in self.scrolls:
-            for byte in scroll.tape:
-                if byte in VALID_OPS:
-                    valid_count += 1
-
+        arr = self.to_array()
+        valid_count = int(np.isin(arr, list(VALID_OPS)).sum())
         return valid_count / total_bytes
 
     def total_bytes(self) -> int:

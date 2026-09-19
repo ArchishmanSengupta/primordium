@@ -5,7 +5,6 @@ This module provides various metrics to measure the state of the soup.
 
 from typing import Dict
 import numpy as np
-from collections import Counter
 
 
 def calculate_entropy(tape: np.ndarray) -> float:
@@ -20,18 +19,9 @@ def calculate_entropy(tape: np.ndarray) -> float:
     if len(tape) == 0:
         return 0.0
 
-    # Count byte frequencies
-    counts = Counter(tape)
-    total = len(tape)
-
-    # Calculate entropy
-    entropy = 0.0
-    for count in counts.values():
-        if count > 0:
-            p = count / total
-            entropy -= p * np.log2(p)
-
-    return entropy
+    counts = np.bincount(tape, minlength=256)
+    p = counts[counts > 0] / len(tape)
+    return float(-(p * np.log2(p)).sum())
 
 
 def soup_entropy(soup) -> float:
@@ -65,13 +55,8 @@ def instruction_density(soup) -> float:
     if total_bytes == 0:
         return 0.0
 
-    valid_count = 0
-
-    for scroll in soup.scrolls:
-        for byte in scroll.tape:
-            if byte in VALID_OPS:
-                valid_count += 1
-
+    arr = soup.to_array()
+    valid_count = int(np.isin(arr, list(VALID_OPS)).sum())
     return valid_count / total_bytes
 
 

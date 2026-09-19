@@ -27,15 +27,9 @@ def _metrics_record(
     event: str,
     soup,
     thresholds: Dict[str, float],
-    sample_size: int,
     **extra: Any,
 ) -> Dict[str, Any]:
-    from primordium.metrics import (
-        soup_entropy,
-        instruction_density as calc_instruction_density,
-        soup_compression_ratio,
-        detect_life_criteria,
-    )
+    from primordium.metrics import soup_entropy, detect_life_criteria
 
     criteria = detect_life_criteria(
         soup,
@@ -46,9 +40,9 @@ def _metrics_record(
     record: Dict[str, Any] = {
         "interaction": interaction,
         "event": event,
-        "instruction_density": calc_instruction_density(soup),
+        "instruction_density": criteria["instruction_density"],
         "entropy": soup_entropy(soup),
-        "compression_ratio": soup_compression_ratio(soup, sample_size=sample_size),
+        "compression_ratio": criteria["compression_ratio"],
         "is_life": criteria["is_life"],
         "criteria_met": criteria["criteria_met"],
     }
@@ -195,11 +189,10 @@ def run(config_file: str, resume: bool):
     logger.info(f"Compression ratio: {initial_comp_ratio:.4f}")
     logger.info(f"Life criteria met: {initial_criteria['criteria_met']}")
 
-    sample_size = min(50, config.chaos.size)
     metrics_writer = MetricsWriter(output_dir)
     metrics_writer.open(append=False)
     metrics_writer.write(
-        _metrics_record(0, "initial", soup, thresholds, sample_size)
+        _metrics_record(0, "initial", soup, thresholds)
     )
 
     # Save initial checkpoint
@@ -262,7 +255,6 @@ def run(config_file: str, resume: bool):
                     "log",
                     soup,
                     thresholds,
-                    sample_size,
                     avg_ops=avg_ops,
                     rate=rate,
                     elapsed_s=elapsed,
@@ -316,7 +308,6 @@ def run(config_file: str, resume: bool):
             "final",
             soup,
             thresholds,
-            sample_size,
             total_ops=total_ops,
             avg_ops=avg_ops_final,
             elapsed_s=elapsed,
