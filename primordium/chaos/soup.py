@@ -100,9 +100,9 @@ class Soup:
         new_i_bytes = new_i.tobytes()
         new_j_bytes = new_j.tobytes()
 
-        if orig_i in new_j_bytes or orig_j in new_i_bytes:
+        if orig_i in new_j_bytes:
             scroll_i.increment_copy_count()
-        if orig_j in new_i_bytes or orig_i in new_j_bytes:
+        if orig_j in new_i_bytes:
             scroll_j.increment_copy_count()
 
         self.scrolls[i].tape = new_i

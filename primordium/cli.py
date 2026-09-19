@@ -204,7 +204,7 @@ def run(config_file: str, resume: bool):
     # Save initial checkpoint
     checkpoint_dir = os.path.join(output_dir, 'checkpoints')
     os.makedirs(checkpoint_dir, exist_ok=True)
-    initial_path = os.path.join(checkpoint_dir, 'soup_0.npy')
+    initial_path = os.path.join(checkpoint_dir, 'soup_0.npz')
     soup.save(initial_path)
     logger.info(f"Saved initial state to {initial_path}")
 
@@ -270,11 +270,11 @@ def run(config_file: str, resume: bool):
 
         # Checkpoint
         if (i + 1) % checkpoint_every == 0:
-            checkpoint_path = os.path.join(checkpoint_dir, f'soup_{i+1}.npy')
+            checkpoint_path = os.path.join(checkpoint_dir, f'soup_{i+1}.npz')
             soup.save(checkpoint_path)
 
     # Save final checkpoint
-    final_path = os.path.join(checkpoint_dir, 'soup_final.npy')
+    final_path = os.path.join(checkpoint_dir, 'soup_final.npz')
     soup.save(final_path)
 
     # Final metrics

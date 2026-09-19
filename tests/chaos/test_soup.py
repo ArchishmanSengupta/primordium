@@ -104,6 +104,27 @@ class TestSoupInteraction:
         assert steps >= 0
 
 
+class TestSoupReplicationAttribution:
+    """Tests for per-scroll replication attribution in interactions."""
+
+    def test_copy_count_attribution(self, monkeypatch):
+        """Only the scroll whose content appears in the other output gains a count."""
+        from primordium.chaos.soup import Soup
+
+        soup = Soup(size=10, tape_length=48, seed=7)
+        monkeypatch.setattr(soup, "select_pair", lambda: (3, 4))
+
+        def fake_run_bf(scroll_a, scroll_b, max_steps=350, tape_length=None):
+            new_a = np.array(scroll_a, dtype=np.uint8).copy()
+            new_b = np.array(scroll_a, dtype=np.uint8).copy()
+            return new_a, new_b, 5
+
+        monkeypatch.setattr("primordium.aether.interpreter.run_bf", fake_run_bf)
+        soup.interact(max_steps=350)
+        assert soup.scrolls[3].copy_count == 1
+        assert soup.scrolls[4].copy_count == 0
+
+
 class TestSoupCheckpoint:
     """Tests for checkpoint save/load."""
 
@@ -206,4 +227,3 @@ class TestSoupIteration:
         soup = Soup(size=10, tape_length=48, seed=42)
         scroll = soup.get_scroll(5)
         assert len(scroll.tape) == 48
-

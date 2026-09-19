@@ -171,7 +171,7 @@ def process_run(run_dir):
 
     # Find all checkpoint files
     checkpoint_files = sorted(
-        checkpoint_dir.glob("soup_*.npy.npz"),
+        checkpoint_dir.glob("soup_*.npz"),
         key=natural_sort_key
     )
 
