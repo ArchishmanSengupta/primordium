@@ -5,11 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "primordium"
 version = "0.1.0"
-description = "Recursive self-improving AI through symbiogenetic computation"
+description = "Open-source symbiogenetic computation framework inspired by the BFF experiment"
 readme = "README.md"
 requires-python = ">=3.10"
+license = {text = "MIT"}
 authors = [
-    {name = "PRIMORDIUM Team"}
+    {name = "Archishman Sengupta"}
 ]
 dependencies = [
     "numpy>=1.20.0",
@@ -26,7 +27,14 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "ruff>=0.4.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/ArchishmanSengupta/primordium"
+Repository = "https://github.com/ArchishmanSengupta/primordium"
+Documentation = "https://github.com/ArchishmanSengupta/primordium/blob/master/primordium/FOUNDATION.md"
+Issues = "https://github.com/ArchishmanSengupta/primordium/issues"
 
 [project.scripts]
 primordium = "primordium.cli:main"
